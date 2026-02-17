@@ -1,0 +1,84 @@
+# ─── docker-compose.prod.yml (PRODUCTION) ─────────────────
+# Usage: docker compose -f docker-compose.prod.yml up -d
+# À utiliser quand tu as le domaine et l'hébergement
+
+version: '3.9'
+
+services:
+
+  # ── Nginx (reverse proxy + SSL) ──────────────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: outillage_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - certbot_certs:/etc/letsencrypt:ro      # SSL Let's Encrypt
+      - certbot_www:/var/www/certbot:ro
+      - uploads_data:/var/www/uploads:ro        # Servir les images statiquement
+    depends_on:
+      - app
+
+  # ── Certbot (SSL automatique) ─────────────────────────────
+  # Décommenter quand tu as le domaine
+  # certbot:
+  #   image: certbot/certbot
+  #   volumes:
+  #     - certbot_certs:/etc/letsencrypt
+  #     - certbot_www:/var/www/certbot
+  #   command: certonly --webroot --webroot-path=/var/www/certbot
+  #            --email contact@domaine.com --agree-tos --no-eff-email
+  #            -d domaine.com -d www.domaine.com
+
+  # ── Application SvelteKit ────────────────────────────────
+  app:
+    build:
+      context: .
+      target: production
+    container_name: outillage_app
+    restart: unless-stopped
+    expose:
+      - "3000"               # Pas exposé directement, passe par Nginx
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:${DB_PASSWORD}@db:5432/outillage_db
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+      - TWILIO_WHATSAPP_FROM=${TWILIO_WHATSAPP_FROM}
+      - WHATSAPP_ENTREPRISE=${WHATSAPP_ENTREPRISE}
+      - JWT_SECRET=${JWT_SECRET}
+      - UPLOAD_DIR=/app/uploads
+      - PUBLIC_BASE_URL=https://${DOMAIN_NAME}
+    volumes:
+      - uploads_data:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ── PostgreSQL ───────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: outillage_db
+    restart: unless-stopped
+    # PAS de port exposé en prod (accès uniquement interne)
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: outillage_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d outillage_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  uploads_data:
+  certbot_certs:
+  certbot_www:

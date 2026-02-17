@@ -1,0 +1,18 @@
+{
+	"files.associations": {
+		"*.css": "tailwindcss"
+	},
+	"sqltools.connections": [
+		{
+			"ssh": "Disabled",
+			"previewLimit": 50,
+			"server": "localhost",
+			"port": 5432,
+			"driver": "PostgreSQL",
+			"name": "mini-ecom",
+			"database": "outillage_db",
+			"username": "postgres",
+			"password": "postgres"
+		}
+	]
+}

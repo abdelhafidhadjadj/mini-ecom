@@ -1,0 +1,68 @@
+
+services:
+
+  # ── Application SvelteKit ────────────────────────────────
+  app:
+    build:
+      context: .
+      target: development       
+    container_name: outillage_app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"          
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/outillage_db
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+      - TWILIO_WHATSAPP_FROM=${TWILIO_WHATSAPP_FROM}
+      - WHATSAPP_ENTREPRISE=${WHATSAPP_ENTREPRISE}
+      - JWT_SECRET=${JWT_SECRET}
+      - UPLOAD_DIR=/app/uploads
+    volumes:
+      - .:/app                # Hot reload en dev
+      - /app/node_modules     # Ne pas écraser node_modules du container
+      - uploads_data:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    command: npm run dev -- --host 0.0.0.0
+
+  # ── PostgreSQL ───────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: outillage_db
+    restart: unless-stopped
+    ports:
+      - "5432:5432"           # Exposé en dev pour accès direct (DBeaver, etc.)
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: outillage_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql:/docker-entrypoint-initdb.d   # Auto-exécute les .sql au démarrage
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d outillage_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ── pgAdmin (optionnel, outil visuel DB) ─────────────────
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: outillage_pgadmin
+    restart: unless-stopped
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@local.dev
+      PGADMIN_DEFAULT_PASSWORD: admin
+    depends_on:
+      - db
+    profiles:
+      - tools                  # Lancé uniquement avec: docker compose --profile tools up
+
+volumes:
+  postgres_data:
+  uploads_data:
