@@ -10,6 +10,14 @@ export default defineConfig(
 		port: 3000,        
 		host: '0.0.0.0',  
 		strictPort: true,  
+         fs: {
+          allow: [
+            'src',
+            '.svelte-kit',
+            'node_modules',
+            '/app/uploads',  
+          ]
+        }
 	}
             
     

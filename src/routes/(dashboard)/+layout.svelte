@@ -2,20 +2,20 @@
   import { page } from '$app/stores';
   import Sidebar from '$lib/components/dashboard/Sidebar.svelte';
   import Topbar from '$lib/components/dashboard/Topbar.svelte';
-
+  import "../layout.css"
   let { data, children } = $props();
 
   const pageTitles: Record<string, string> = {
-    '/dashboard':                  '📊 Tableau de bord',
-    '/dashboard/commandes':        '📋 Commandes',
-    '/dashboard/produits':         '🔩 Produits',
-    '/dashboard/produits/nouveau': '🔩 Nouveau produit',
+    '/dashboard':                  '📊 Dashboard',
+    '/dashboard/orders':        '📋 Orders',
+    '/dashboard/products':         '🔩 Products',
+    '/dashboard/products/add': '🔩 Add product',
     '/dashboard/catalogues':       '📁 Catalogues',
-    '/dashboard/categories':       '🗂️ Catégories',
+    '/dashboard/categories':       '🗂️ Categories',
     '/dashboard/stock':            '📦 Stock',
     '/dashboard/clients':          '👥 Clients',
-    '/dashboard/utilisateurs':     '👤 Utilisateurs',
-    '/dashboard/parametres':       '⚙️ Paramètres',
+    '/dashboard/users':     '👤 Users',
+    '/dashboard/settings':       '⚙️ Settings',
   };
 
   let currentTitle = $derived(

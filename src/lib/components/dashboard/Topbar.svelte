@@ -3,8 +3,13 @@
 
   let { title = 'Dashboard', user } = $props<{
     title?: string;
-    user: { nom: string; role: string };
+    user?: { nom: string; role: string; email?: string };
   }>();
+
+  // Safe defaults si user est undefined
+  let userName = $derived(user?.nom ?? 'User');
+  let userRole = $derived(user?.role ?? 'guest');
+  let userInitial = $derived(userName.charAt(0).toUpperCase());
 </script>
 
 <header class="sticky top-0 z-30 bg-base-100 border-b border-base-200">
@@ -45,15 +50,15 @@
 
       <!-- User info — caché sur très petit écran -->
       <div class="hidden sm:flex flex-col items-end">
-        <span class="text-sm font-medium leading-tight">{user.nom}</span>
-        <span class="text-xs text-base-content/50 capitalize">{user.role}</span>
+        <span class="text-sm font-medium leading-tight">{userName}</span>
+        <span class="text-xs text-base-content/50 capitalize">{userRole}</span>
       </div>
 
       <!-- Avatar -->
       <div class="avatar placeholder">
         <div class="bg-primary text-primary-content rounded-full w-8 lg:w-9 cursor-pointer">
           <span class="text-xs lg:text-sm font-bold">
-            {user.nom.charAt(0).toUpperCase()}
+            {userInitial}
           </span>
         </div>
       </div>

@@ -59,11 +59,19 @@ CREATE TABLE IF NOT EXISTS produits (
   updated_at    TIMESTAMP DEFAULT NOW()
 );
 
+CREATE TABLE prix_client (
+  id SERIAL PRIMARY KEY,
+  produit_id INT REFERENCES produits(id),
+  type_client VARCHAR(50), -- 'public', 'revendeur', 'grossiste', 'super_grossiste'
+  prix DECIMAL(10,2) NOT NULL
+);
+
+
 -- ─── Images produits ─────────────────────────────────────
 CREATE TABLE IF NOT EXISTS produit_images (
   id            SERIAL PRIMARY KEY,
   produit_id    INTEGER NOT NULL REFERENCES produits(id) ON DELETE CASCADE,
-  url           VARCHAR(500) NOT NULL,
+  url           TEXT NOT NULL,
   ordre         INTEGER DEFAULT 0,
   principale    BOOLEAN DEFAULT FALSE
 );

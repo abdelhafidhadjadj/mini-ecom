@@ -22,17 +22,24 @@ export const load: PageServerLoad = async () => {
         ), 0)                                             AS ca_jour,
         COUNT(*) FILTER (
           WHERE created_at >= NOW() - INTERVAL '1 day'
-        )                                                 AS commandes_jour
+        )                                                 AS commandes_jour,
+        COUNT(*) FILTER (WHERE client_b2b_id IS NOT NULL) AS total_b2b,
+        COUNT(*) FILTER (WHERE client_b2b_id IS NULL)     AS total_b2c
       FROM commandes
     `),
 
-    // 8 dernières commandes
+    // 8 dernières commandes avec infos B2B
     query(`
       SELECT
-        id, client_nom, client_telephone,
-        client_wilaya, total, statut, created_at
-      FROM commandes
-      ORDER BY created_at DESC
+        c.id, c.client_nom, c.client_telephone,
+        c.client_wilaya, c.total, c.statut, c.created_at,
+        c.client_b2b_id,
+        b.nom_entreprise,
+        tc.nom AS type_client_nom
+      FROM commandes c
+      LEFT JOIN clients_b2b b   ON b.id  = c.client_b2b_id
+      LEFT JOIN types_client tc ON tc.id = c.type_prix_applique
+      ORDER BY c.created_at DESC
       LIMIT 8
     `),
   ]);
@@ -46,9 +53,19 @@ export const load: PageServerLoad = async () => {
     LIMIT 5
   `);
 
+  // Clients B2B en attente d'approbation
+  const pendingB2B = await query(`
+    SELECT id, nom_entreprise, contact_nom, wilaya, created_at
+    FROM clients_b2b
+    WHERE statut = 'en_attente'
+    ORDER BY created_at ASC
+    LIMIT 5
+  `);
+
   return {
     stats: stats[0],
     recentOrders,
     lowStock,
+    pendingB2B,
   };
 };

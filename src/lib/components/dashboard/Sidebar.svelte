@@ -14,22 +14,26 @@
   } from 'lucide-svelte';
 
   let { user } = $props<{
-    user: { nom: string; role: string };
+    user?: { nom: string; role: string; email?: string };
   }>();
 
+  let userName = $derived(user?.nom ?? 'User');
+  let userRole = $derived(user?.role ?? 'guest');
+  let userInitial = $derived(userName.charAt(0).toUpperCase());
+
   const navItems = [
-    { label: 'Tableau de bord', href: '/dashboard',            icon: LayoutDashboard },
-    { label: 'Commandes',       href: '/dashboard/commandes',  icon: ClipboardList   },
-    { label: 'Produits',        href: '/dashboard/produits',   icon: Wrench          },
-    { label: 'Catalogues',      href: '/dashboard/catalogues', icon: FolderOpen      },
-    { label: 'Catégories',      href: '/dashboard/categories', icon: Layers          },
-    { label: 'Stock',           href: '/dashboard/stock',      icon: Package         },
-    { label: 'Clients',         href: '/dashboard/clients',    icon: Users           },
+    { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { label: 'Orders', href: '/dashboard/orders', icon: ClipboardList },
+    { label: 'Products', href: '/dashboard/products', icon: Wrench },
+    { label: 'Catalogues', href: '/dashboard/catalogues', icon: FolderOpen },
+    { label: 'Categories', href: '/dashboard/categories', icon: Layers },
+    { label: 'Stock', href: '/dashboard/stock', icon: Package },
+    { label: 'Clients', href: '/dashboard/clients', icon: Users },
   ];
 
   const adminItems = [
-    { label: 'Utilisateurs', href: '/dashboard/utilisateurs', icon: UserCog  },
-    { label: 'Paramètres',   href: '/dashboard/parametres',   icon: Settings },
+    { label: 'Users', href: '/dashboard/users', icon: UserCog },
+    { label: 'Settings', href: '/dashboard/settings', icon: Settings },
   ];
 
   function isActive(href: string): boolean {
@@ -73,7 +77,7 @@
       </a>
     {/each}
 
-    {#if user.role === 'admin'}
+    {#if userRole === 'admin'}
       <div class="divider text-xs text-base-content/30 my-1 px-3">ADMIN</div>
 
       {#each adminItems as item}
@@ -101,23 +105,23 @@
       <div class="avatar placeholder shrink-0">
         <div class="bg-primary text-primary-content rounded-full w-8">
           <span class="text-xs font-bold">
-            {user.nom.charAt(0).toUpperCase()}
+            {userInitial}
           </span>
         </div>
       </div>
       <div class="flex-1 min-w-0">
-        <p class="text-sm font-medium truncate">{user.nom}</p>
-        <p class="text-xs text-base-content/50 capitalize">{user.role}</p>
+        <p class="text-sm font-medium truncate">{userName}</p>
+        <p class="text-xs text-base-content/50 capitalize">{userRole}</p>
       </div>
     </div>
 
-    <form method="POST" action="/api/auth/logout">
+    <form method="POST" action="/logout">
       <button
         type="submit"
         class="btn btn-ghost btn-sm w-full justify-start gap-2 text-error hover:bg-error/10 mt-1"
       >
         <LogOut size={15} />
-        Déconnexion
+        Logout
       </button>
     </form>
   </div>

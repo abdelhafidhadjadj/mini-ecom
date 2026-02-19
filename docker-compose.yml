@@ -22,6 +22,7 @@ services:
     volumes:
       - .:/app                # Hot reload en dev
       - /app/node_modules     # Ne pas écraser node_modules du container
+      - /app/uploads
       - uploads_data:/app/uploads
     depends_on:
       db:
